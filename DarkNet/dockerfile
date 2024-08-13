@@ -1,0 +1,20 @@
+ARG python_version=3.10
+
+FROM python:${python_version} AS builder
+RUN python -m pip install --upgrade pip
+COPY requirements.txt .
+RUN pip install --user --no-warn-script-location -r requirements.txt
+
+FROM sui:service AS service
+
+FROM sherensberk/darknet:2204.550.1241-devel
+ARG python_version=3.10
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local:$PATH
+
+WORKDIR /src
+COPY --from=service /src/* .
+COPY ./src/ /src/
+#ADD https://github.com/stephanecharette/DarkHelp/blob/master/src-python/DarkHelp.py ./interface/DarkHelp.py
+RUN apt-get install -y python${python_version}

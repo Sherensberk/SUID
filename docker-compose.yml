@@ -1,0 +1,141 @@
+services:
+  CLIENT:
+    expose:
+      - ${CAMERA_PORT}
+      - ${FILTER_PORT}
+      - ${MODEL_PORT}
+      - ${INTERPRETER_PORT}
+      - ${CLP_PORT}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: 3
+    networks:
+      - bind-network
+    image: python:opencv
+    volumes:
+      - /home/delta/protonet/SUI/services/:/app/
+    command: ["sleep", "infinity"]
+  CAMERA:
+    privileged: true
+    container_name: "${CAMERA_HOSTNAME}"
+    expose:
+      - ${CAMERA_PORT}
+      - ${FILTER_PORT}
+      - ${MODEL_PORT}
+      - ${INTERPRETER_PORT}
+      - ${CLP_PORT}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: 3
+    networks:
+      - bind-network
+    image: sui:camera
+    build:
+      context: ./Camera
+      dockerfile: dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: ./Camera
+    command: [  "python", "-u","camera_service.py",
+                # "--service_host", "",
+                "--service_port", "${CAMERA_PORT}",
+                "--output_port", "${CAMERA_OUT_PORT}",
+                "--output_host", "${CAMERA_OUT_HOST}",
+                "--type", "USB",
+                # "--source", "/src/calibration/video2.webm",
+                ]
+    #devices:
+    #  - "/dev/video0:/dev/video0"
+    volumes:
+      - /dev:/dev
+      - ./Camera/calibration:/src/calibration
+      - ./Camera/src/camera_service.py:/src/camera_service.py
+      
+  DARK_API:
+    privileged: true
+    container_name: "${DARK_HOSTNAME}"
+    expose:
+      - ${CAMERA_PORT}
+      - ${FILTER_PORT}
+      - ${MODEL_PORT}
+      - ${INTERPRETER_PORT}
+      - ${CLP_PORT}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: 3
+    networks:
+     - bind-network
+    image: sui:darknet
+    build:
+      context: ./DarkNet
+      dockerfile: dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: ./DarkNet
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu] 
+    command: [  "python3", "-u","dark_service.py",
+                "--service_port", "${DARK_PORT}",
+                "--output_port", "${MODEL_OUT_PORT}",
+                "--output_host", "${MODEL_OUT_HOST}",
+                "--cfg", "/dark/dark.cfg",
+                "--names", "/dark/dark.names",
+                "--weights", "/dark/dark.weights"
+    ]
+    volumes:
+      - ./DarkNet/model/model.cfg:/dark/dark.cfg
+      - ./DarkNet/model/model.names:/dark/dark.names
+      - ./DarkNet/model/model_best.weights:/dark/dark.weights
+      # - "$HOME/.Xauthority:/root/.Xauthority:rw"
+      - /tmp/.X11-unix:/tmp/.X11-unix
+  
+  INTERPRETER:
+    container_name: "${INTERPRETER_HOSTNAME}"
+    expose:
+      - ${CAMERA_PORT}
+      - ${FILTER_PORT}
+      - ${MODEL_PORT}
+      - ${INTERPRETER_PORT}
+      - ${CLP_PORT}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: 3
+    networks:
+      - bind-network
+    image: sui:interpreter
+    build:
+      context: ./Interpreter
+      dockerfile: dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          path: ./Interpreter
+    command: [  "python", "-u","interpreter_service.py",
+                "--service_port", "${INTERPRETER_PORT}",
+                "--output_port", "${INTERPRETER_OUT_PORT}",
+                "--output_host", "${INTERPRETER_OUT_HOST}",
+                "--working_plane",
+                "--marker_type","DICT_4X4_1000",
+                "--board_shape_width","14",
+                "--board_shape_height","10",
+                "--square_size","20",
+                "--marker_size","15",
+                "--id_offset","100",
+    ]
+    volumes:
+      - ./Camera/calibration:/src/calibration
+
+networks: 
+  bind-network:
+    driver: bridge

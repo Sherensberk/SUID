@@ -1,0 +1,16 @@
+ARG version=3.11.5
+FROM python:${version} AS builder
+RUN apt-get update -y && python -m pip install --upgrade pip
+COPY requirements.txt .
+RUN pip install --user --no-warn-script-location -r requirements.txt
+
+FROM sui:service AS service
+
+FROM python:${version}
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local:$PATH
+
+WORKDIR /src
+COPY --from=service /src/* .
+COPY ./src/ /src/

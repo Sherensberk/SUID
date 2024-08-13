@@ -1,0 +1,4 @@
+ARG version=latest
+FROM python:${version}
+WORKDIR /src
+COPY /src/*.py .

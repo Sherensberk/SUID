@@ -1,0 +1,34 @@
+ARG version=3.11.5
+FROM python:${version} AS builder
+RUN apt-get update -y && \
+apt-get install -y \
+ffmpeg \
+libsm6 \
+libxext6 
+RUN python -m pip install --upgrade pip
+COPY requirements.txt .
+RUN pip install --user --no-warn-script-location -r requirements.txt
+
+FROM sui:service AS service
+
+FROM python:${version}
+
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local:$PATH
+
+ARG USERNAME=dev
+ARG PUID=1000
+ARG PGID=1000
+
+WORKDIR /src
+
+RUN apt-get update -y && \
+    usermod -a -G dialout root && \
+    usermod -a -G video root && \
+    chown -R root /src
+
+COPY *.deb .
+RUN apt-get install -y /src/*.deb
+
+COPY --from=service /src/* .
+COPY  ./src/ /src/

@@ -1,0 +1,15 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      match:
+        macaddress: 0a:e0:af:a3:01:1e #lshw -C network | grep serial
+      set-name: eth0
+      addresses:
+        - 192.168.10.2/24             # static ip
+      routes:
+        - to: default
+          via: 192.168.10.1
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8]

@@ -1,0 +1,2 @@
+codetiming ~= 1.4.0
+numpy ~= 1.26.0
