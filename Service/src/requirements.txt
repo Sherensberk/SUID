@@ -1,0 +1,8 @@
+opentelemetry-api==1.27.0
+opentelemetry-sdk===1.27.0
+opentelemetry-exporter-otlp==1.27.0
+opentelemetry-instrumentation-logging==0.48b0
+grpcio==1.62.3
+grpcio-tools==1.62.3
+protobuf==4.25.4
+codetiming ~= 1.4.0

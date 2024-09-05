@@ -3,4 +3,4 @@
 **/*.webm
 **/*.pyc
 **/__pycache__/**
-**/*.zip
+.env**

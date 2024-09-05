@@ -1,0 +1,6 @@
+src/core
+env
+*.deb
+*.zip
+.tool-versions
+*.pkl

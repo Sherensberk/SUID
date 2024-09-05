@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+enum LinkType {
+    OUTPUT = 0;
+    INPUT  = 1;
+}
+
+message NodeId {
+    string id = 1;
+}
+
+message Link {
+    // A:O:0
+    string parent = 2;                   // NODE: A
+    LinkType type = 3;                   // TYPE: O (OUTPUT)
+    int32 id      = 1;                   // ID:   0
+}
+
+message Connection {
+    // {'A:O:0': 'B1:I:0'}
+    Link output = 1;                     // OUTPUT: 'A:O:0'
+    Link input  = 2;                     // INPUT:  'B1:I:0' 
+}
+
+message Node {
+    string id       = 1;                 // ID:          node_000
+    string service  = 2;                 // SERVICE:     Camera, DarkNet 
+    string channel  = 3;                 // channel:     50051
+    string callback = 4;                 // FUNCTION:    take_picture
+    repeated Connection connections = 5; // CONNECTIONS: [{'A:O:0': 'B1:I:0'}, ..., ]
+}
+
+message Recipe {
+    string id = 1;                       // ID: Rotine_ABC
+    repeated Node nodes = 2;             // Nodes [{...}]
+}
+
+// Services
+message NoneArgs {}
+message RequestStatus {
+    int32 status = 1;
+}
+service NodeManager {
+    rpc addRecipeNode(Node) returns (Node);
+    rpc removeNode(NodeId) returns (Node);
+    rpc loadRecipe(Recipe) returns (NoneArgs);
+}
+
+//! ====================================================================
+service Camera {
+    rpc take_picture(NoneArgs) returns (Image);
+}
+//! ........................
+message Image {
+    int32 width      = 1;
+    int32 height     = 2;
+    bytes data       = 3;
+}
+//! ====================================================================
+service ObjectDetection{
+    rpc make_inference(Image) returns (InferenceResult);
+    rpc loadNetWork(NetworkConfig) returns (RequestStatus);
+}
+//! ........................
+
+enum SuportedFrameWorks {
+    darknet = 0;
+    opencv  = 1;
+    rknn    = 2;
+}
+
+message NetworkConfig {
+    SuportedFrameWorks framework = 1; //darknet, opencv_dnn
+}
+
+message Point2f {
+    float x = 1;             // X coordinate
+    float y = 2;             // Y coordinate
+}
+message Size2f {
+    float height = 1;        // Height
+    float width  = 2;        // Width
+}
+message Rect {
+    int32 height = 1;  // Height of the rectangle
+    int32 width  = 2;  // Width of the rectangle
+    int32 x      = 3;  // X coordinate of the top-left corner
+    int32 y      = 4;  // Y coordinate of the top-left corner
+}
+message Probability {
+    int32 class       = 1;
+    string name       = 2;
+    float probability = 3;
+}
+message Network{
+    string cfg     = 1;
+    string names   = 2;
+    string weights = 3;
+}
+message Settings {
+    int32 driver            = 1;
+    bool enable_tiles       = 2;
+    bool include_percentage = 4;
+    float nms               = 5;
+    bool output_redirection = 6;
+    bool snapping           = 7;
+    float threshold         = 8;
+}
+message Timestamp {
+    int32 epoch = 1;
+    string text = 2;
+}
+message Prediction {
+    repeated Probability all_probabilities = 1;
+    int32 best_class                       = 2;  // The class that obtained the highest probability
+    float best_probability                 = 3;  // The probability of the class that obtained the highest value
+    string name                            = 4;  // A name to use for the object
+    Point2f original_point                 = 5;  // The original normalized X and Y coordinate returned by darknet
+    Size2f original_size                   = 6;  // The original normalized width and height returned by darknet
+    uint64 object_id                       = 7;  // Unique object ID if object tracking is in use
+    int32 prediction_index                 = 8;
+    Rect rect                              = 9;  // Rectangle describing where the object is located in the original image
+    // int32 tile             = 8;  // The tile number on which this object was found
+}
+
+message Tiles {
+    int32 height = 1;
+    int32 horizontal = 2;
+    int32 vertical = 3;
+    int32 width = 4;
+}
+message File {
+    int32 count     = 1;
+    string duration = 2;
+    string filename = 3;
+    int32 original_height = 4;
+    int32 original_width = 5;
+    repeated Prediction prediction = 6;
+    int32 resized_height = 7;
+    int32 resized_width = 8;
+    Tiles tiles = 9;
+}
+message InferenceResult {
+    repeated File file  = 1;
+    Network network     = 2;
+    Settings settings   = 3;
+    Timestamp timestamp = 4;
+}
+
+//! ====================================================================
+service ObjectPositioning{
+    rpc make_worldmapping(WorldMappingRequest) returns (WorldMappingResult);
+}
+//! ........................
+
+message WorldMappingRequest {
+    Image image = 1;
+    InferenceResult inference = 2;
+}
+message WorldMappingResult {
+    repeated Point2f coordinates = 1;
+}
+//! ====================================================================

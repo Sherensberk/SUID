@@ -1,0 +1,19 @@
+ARG version=3.11.5
+FROM python:${version} AS builder
+RUN apt-get update -y && python -m pip install --upgrade pip
+COPY ./Nodes/requirements.txt .
+COPY ./src/requirements.txt requirements.core
+RUN cat requirements.core >> requirements.txt && pip install --user --no-warn-script-location -r requirements.txt
+
+FROM python:${version}
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local:$PATH
+
+WORKDIR /service/src/
+COPY ./Nodes/src .
+RUN rm core
+
+WORKDIR /service/src/core
+COPY ./src/ .
+
+WORKDIR /service/src/

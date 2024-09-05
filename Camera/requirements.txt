@@ -1,4 +1,0 @@
-numpy ~= 1.26.0
-opencv-contrib-python ~= 4.9.0
-codetiming ~= 1.4.0
-pypylon ~= 3.0.1

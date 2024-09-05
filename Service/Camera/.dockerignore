@@ -1,0 +1,6 @@
+**/*.zip
+**/*.dockerfile
+**/*.dockerignore
+**/env/**
+src/core
+**/__pycache__/**
