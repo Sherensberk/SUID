@@ -1,0 +1,18 @@
+syntax = "proto3";
+package detection;
+
+import "detection/messages.proto";
+import "camera/service.proto";
+
+message GetInferenceRequest {
+    camera.GetPictureResponse image = 1;
+}
+
+message GetInferenceResponse {
+    InferenceResult inference = 1;
+}
+
+service ObjectDetection{
+    rpc get_inference(GetInferenceRequest) returns (GetInferenceResponse);
+}
+

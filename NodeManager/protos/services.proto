@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+message Node {
+    message Connection {
+        message Link {
+            enum LinkType {
+                OUTPUT = 0;
+                INPUT  = 1;
+            }
+            // A:O:0
+            string parent = 2;           // NODE: A
+            LinkType type = 3;           // TYPE: O (OUTPUT)
+            int32 id      = 1;           // ID:   0
+        }
+        // {'A:O:0': 'B1:I:0'}
+        Link output = 1;                 // OUTPUT: 'A:O:0'
+        Link input  = 2;                 // INPUT:  'B1:I:0' 
+    }
+    string id       = 1;                 // ID:          node_000
+    string service  = 2;                 // SERVICE:     Camera, DarkNet 
+    string channel  = 3;                 // channel:     50051
+    string callback = 4;                 // FUNCTION:    take_picture
+    repeated Connection connections = 5; // CONNECTIONS: [{'A:O:0': 'B1:I:0'}, ..., ]
+}
+
+message Recipe {
+    string id = 1;                       // ID: Rotine_ABC
+    repeated Node nodes = 2;             // Nodes [{...}]
+}
+
+// Services
+message NoneArgs {}
+message RequestStatus {
+    int32 status = 1;
+}
+service NodeManager {
+    rpc addRecipeNode(Node) returns (Node);
+    rpc removeNode(Node) returns (Node);
+    rpc loadRecipe(Recipe) returns (NoneArgs);
+}

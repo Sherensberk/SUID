@@ -22,5 +22,5 @@ WORKDIR /service/src/core
 COPY ./src/ .
 
 WORKDIR /service/src/
-
+# RUN opentelemetry-bootstrap -a install
 #ADD https://github.com/stephanecharette/DarkHelp/blob/master/src-python/DarkHelp.py ./interface/DarkHelp.py

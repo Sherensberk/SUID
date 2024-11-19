@@ -1,0 +1,21 @@
+syntax = "proto3";
+package coordinate;
+
+import "camera/service.proto";
+import "detection/service.proto";
+
+message GetRealRequest {
+    camera.GetPictureResponse image = 1;
+    detection.GetInferenceResponse inference = 2;
+}
+message GetReal2DResponse {
+    repeated 2D coordinates = 1;
+}
+message GetReal3DResponse {
+    repeated 3D coordinates = 1;
+}
+
+service Coordinate{
+    rpc get_real2D(GetRealRequest) returns (GetReal2DResponse);
+    rpc get_real3D(GetRealRequest) returns (GetReal3DResponse);
+}

@@ -17,3 +17,4 @@ WORKDIR /service/src/core
 COPY ./src/ .
 
 WORKDIR /service/src/
+# RUN opentelemetry-bootstrap -a install

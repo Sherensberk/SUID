@@ -1,15 +1,23 @@
 services:
-  collector:
-    container_name: collector
-    image: otel/opentelemetry-collector-contrib:latest
-    volumes:
-      - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
-    command: ['--config=/etc/otelcol-contrib/config.yaml']
+  # collector:
+  #   container_name: collector
+  #   image: otel/opentelemetry-collector-contrib:latest
+  #   volumes:
+  #     - ./otel-config.yaml:/etc/otelcol-contrib/config.yaml
+  #   command: ['--config=/etc/otelcol-contrib/config.yaml']
+  #   ports:
+  #     - '4317:4317'
+  #   networks:
+  #     - bind-network
+  otel:
+    image: grafana/otel-lgtm
     ports:
-      - '4317:4317'
-    networks:
-      - bind-network
+      - 3000:3000
+      - 4317:4317
+      - 4318:4318
   camera:
+    depends_on:
+      - otel
     privileged: true
     container_name: "${CAMERA_HOSTNAME}"
     env_file:
@@ -48,6 +56,8 @@ services:
       - ${CAMERA_PORT}:50051
       
   object_detection:
+    depends_on:
+        - otel
     privileged: true
     container_name: "${DARK_HOSTNAME}"
     env_file:
@@ -94,6 +104,8 @@ services:
       - ${MODEL_PORT}:50051
   
   object_positioning:
+    depends_on:
+        - otel
     container_name: "${INTERPRETER_HOSTNAME}"
     env_file:
       - .env.${ENV}

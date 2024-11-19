@@ -1,0 +1,18 @@
+syntax = "proto3";
+package camera;
+
+import "camera/messages.proto";
+
+
+message GetPictureRequest {
+
+}
+
+message GetPictureResponse {
+    Image image = 1;
+}
+
+service Camera {
+    rpc get_picture(GetPictureRequest) returns (GetPictureResponse);
+}
+
